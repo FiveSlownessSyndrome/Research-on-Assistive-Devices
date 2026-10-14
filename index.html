@@ -1397,15 +1397,21 @@ html.pro-open .bgm{display:none}
   .shape-strip::-webkit-scrollbar{height:6px}
   .shape-strip::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
 
+  /* 封面（P1）：序幕标题那层白色柔光衬底在封面态必须撤掉——它就是挡住中间文案的白块 */
+  html.pro-cover .pro-title::before{opacity:0 !important;transition:opacity .45s var(--ease)}
+  html.pro-cover .pro-title{pointer-events:none}
+
   /* 封面（P1）：清掉序幕残留的白色椭圆光斑，文案居中、提对比度、避免孤字与断词 */
   .pro-aperture{opacity:0 !important}
   .cover-copy{text-align:center}
   .cv-h1,.cv-en,.cv-sub,.cv-body{text-align:center;line-break:strict;word-break:normal;
     overflow-wrap:break-word;text-wrap:pretty}
   .cv-h1,.cv-sub{text-wrap:balance}
-  .cv-en{color:#4d6b8c}
-  .cv-sub{color:#4a6a8f;letter-spacing:.2em;text-indent:.2em}
-  .cv-body{color:#35506f;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.95}
+  .cv-en{color:#3f5f83;font-weight:600}
+  .cv-sub{color:#2f4f77;font-weight:650;font-size:13.6px;letter-spacing:.2em;text-indent:.2em}
+  .cv-body{color:#2b4665;font-weight:500;font-size:13.6px;max-width:44ch;
+    margin-left:auto;margin-right:auto;line-height:1.92}
+  .cv-note{font-weight:500}
   .cv-key{max-width:42ch;margin-left:auto;margin-right:auto;white-space:normal;text-wrap:balance}
   .cv-note{text-wrap:balance}
   .cv-meta dt{color:#587190}
@@ -1413,7 +1419,7 @@ html.pro-open .bgm{display:none}
   .cv-rule{margin-left:auto;margin-right:auto;
     background:linear-gradient(90deg,rgba(144,168,197,0),rgba(144,168,197,.85),rgba(144,168,197,0))}
   .cv-meta{text-align:left}
-  .cv-note{color:#5d7996;text-align:center;max-width:none}
+  .cv-note{color:#4a6683;text-align:center;max-width:none}
 
   /* 序幕：轻触后进入封面态，光晕整体消失（桌面不动） */
   html.pro-cover #proCanvas{opacity:0 !important;transition:opacity .55s var(--ease)}

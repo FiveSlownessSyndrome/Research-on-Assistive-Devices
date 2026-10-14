@@ -1397,6 +1397,24 @@ html.pro-open .bgm{display:none}
   .shape-strip::-webkit-scrollbar{height:6px}
   .shape-strip::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
 
+  /* 封面（P1）：清掉序幕残留的白色椭圆光斑，文案居中、提对比度、避免孤字与断词 */
+  .pro-aperture{opacity:0 !important}
+  .cover-copy{text-align:center}
+  .cv-h1,.cv-en,.cv-sub,.cv-body{text-align:center;line-break:strict;word-break:normal;
+    overflow-wrap:break-word;text-wrap:pretty}
+  .cv-h1,.cv-sub{text-wrap:balance}
+  .cv-en{color:#4d6b8c}
+  .cv-sub{color:#4a6a8f;letter-spacing:.2em;text-indent:.2em}
+  .cv-body{color:#35506f;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.95}
+  .cv-key{max-width:42ch;margin-left:auto;margin-right:auto;white-space:normal;text-wrap:balance}
+  .cv-note{text-wrap:balance}
+  .cv-meta dt{color:#587190}
+  .cv-meta dd{color:#3d5a7a}
+  .cv-rule{margin-left:auto;margin-right:auto;
+    background:linear-gradient(90deg,rgba(144,168,197,0),rgba(144,168,197,.85),rgba(144,168,197,0))}
+  .cv-meta{text-align:left}
+  .cv-note{color:#5d7996;text-align:center;max-width:none}
+
   /* 序幕：轻触后进入封面态，光晕整体消失（桌面不动） */
   html.pro-cover #proCanvas{opacity:0 !important;transition:opacity .55s var(--ease)}
   html.pro-cover .pro-vignette{opacity:0 !important;transition:opacity .55s var(--ease)}
@@ -5086,10 +5104,11 @@ function bindTouch(){
     PRO.ab = PRO.abT = 1;                      /* 只推进到"封面态"；再滑一下才交出到正文 */
     return true;
   }
-  var sy = 0, sx = 0, live = false, stage = 0, t0 = 0;
+  var sy = 0, sx = 0, live = false, stage = 0, t0 = 0, coverAtStart = false;
   window.addEventListener('touchstart', function(e){
     if(!(PRO.on && PRO.mode === 'prologue')){ return; }
-    proJump();                                  /* 手机上一碰即进入，不用反复滑动 */
+    coverAtStart = (PRO.ab > .96);              /* 本次手势开始时，封面是否已经就位 */
+    proJump();                                  /* 一碰即推开光圈；再滑一次才进正文 */
     var t = e.touches[0]; if(!t){ return; }
     sy = t.clientY; sx = t.clientX; live = true; stage = 0; t0 = Date.now();
   }, { passive:true });
@@ -5098,11 +5117,15 @@ function bindTouch(){
     var t = e.touches[0]; if(!t){ return; }
     var up = sy - t.clientY, side = Math.abs(sx - t.clientX);
     if(side > Math.abs(up) * 1.2){ return; }        /* 横向滑动不当作推进 */
-    if(up > 26 && stage < 1){ stage = 1; proGesture(1); }
-    if(up > 150 && stage < 2 && Date.now() - t0 > 380){ stage = 2; proGesture(1); }  /* 一次长滑可连推两级 */
+    if(up > 26 && stage < 1){
+      stage = 1;
+      /* 封面还没就位 → 本次滑动只把光圈推到封面态（停在 P1），不会几秒后自己跳走；
+         封面已就位 → 这次滑动才交出到正文 */
+      if(coverAtStart){ proGesture(1); } else { PRO.abT = 1; }
+    }
     if(up < -34 && stage === 0){ stage = -1; proGesture(-1); }
   }, { passive:true });
-  window.addEventListener('touchend', function(){ live = false; stage = 0; }, { passive:true });
+  window.addEventListener('touchend', function(){ live = false; stage = 0; PRO.touchEndAt = Date.now(); }, { passive:true });
   window.addEventListener('touchcancel', function(){ live = false; stage = 0; }, { passive:true });
   /* 手机上把提示文案改掉（滚轮/键盘都不可用） */
   if(COARSE || _NARROW && ('ontouchstart' in window)){
@@ -5763,7 +5786,9 @@ function initPrologue(){
        注意：触摸会在 touchend 后再合成一次 click，若沿用桌面的两步式就会"一碰就冲到 P2"。 */
     var touchish = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
     if(window.innerWidth <= 820 && touchish){
-      if(PRO.abT < 1){ PRO.abT = 1; }
+      if(PRO.abT < 1){ PRO.abT = 1; return; }
+      /* 触摸松手后会合成一次 click：只有隔开一段时间的"再点一下"才算继续 */
+      if(PRO.ab > .96 && PRO.tp < .02 && Date.now() - (PRO.touchEndAt || 0) > 650){ PRO.tp = 1; }
       return;
     }
     /* 桌面：与滚轮保持一致的两步式 */

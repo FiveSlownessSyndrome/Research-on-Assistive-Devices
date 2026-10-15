@@ -3854,6 +3854,41 @@ function wireZoom(){
   function endDrag(){ drag = null; stage.classList.remove('dragging'); }
   stage.addEventListener('pointerup', endDrag);
   stage.addEventListener('pointercancel', endDrag);
+  /* ---- 手机：双指捏合缩放（以两指中点为锚点，1 倍以内容适配为基准） ---- */
+  var pinch = null;
+  stage.addEventListener('touchstart', function(e){
+    if(e.touches.length !== 2){ return; }
+    drag = null; stage.classList.remove('dragging');   /* 两指按下时停掉拖动 */
+    var a = e.touches[0], b = e.touches[1];
+    pinch = { d: Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY), s: ZV.s };
+    ZV.moved = 99;                                     /* 捏合松手后不当作"点击关闭" */
+  }, { passive:true });
+  stage.addEventListener('touchmove', function(e){
+    if(!pinch || e.touches.length !== 2){ return; }
+    var a = e.touches[0], b = e.touches[1];
+    var d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    if(pinch.d < 8){ return; }
+    var r = stage.getBoundingClientRect();
+    var target = Math.max(0.15, Math.min(8, pinch.s * (d / pinch.d)));
+    zvZoom(target / ZV.s,                                  /* 相对当前倍率的增量 */
+           (a.clientX + b.clientX)/2 - r.left - r.width/2,
+           (a.clientY + b.clientY)/2 - r.top - r.height/2);
+  }, { passive:true });
+  function endPinch(){
+    if(!pinch){ return; }
+    pinch = null;
+    window.setTimeout(function(){ ZV.moved = 0; }, 350);   /* 稍后再恢复"单击空白关闭" */
+  }
+  stage.addEventListener('touchend', function(e){
+    if(e.touches && e.touches.length >= 2){ return; }
+    endPinch();
+  }, { passive:true });
+  stage.addEventListener('touchcancel', endPinch, { passive:true });
+  /* 手机端提示文案与桌面不同（没有滚轮） */
+  if(('ontouchstart' in window) || navigator.maxTouchPoints > 0){
+    var zh = v.querySelector('.zoomhint');
+    if(zh){ zh.textContent = '双指缩放 · 拖动平移 · 双击放大/还原'; }
+  }
 }
 /* ==========================================================================
    06 P4：四大分型卡片
@@ -4158,7 +4193,7 @@ var PV = [
     platform:"官方平台座便椅 35 款，市场价 228–4500 元；四会市残联采购坐便轮椅 466.5 元/台",
     buyers:"官方平台累计售出 60901 件：≤270 元档 22038 件（FS894 270 元 19451 件、260 元 2587 件）、270–500 元档 36494 件（互邦 298 元 22764 件＋300–500 元档 13190 件＋其余 540 件）、500 元以上 2369 件",
     sc:{s:71, z:56, r:66, c:66},
-    basis:"社会功能：如厕+移动+坐便，照护减轻强；主观：负面实测指出如厕不舒服、摇晃、擦PP不好操作，主观分低；真实：结构功能明确，但低价款体验与安全差异大。综合=71×0.4+56×0.2+66×0.4=66.0→66",
+    basis:"社会功能：如厕+移动+坐便，照护减轻强；主观：负面实测指出如厕不舒服、摇晃、便后清洁不便、操作困难，主观分低；真实：结构功能明确，但低价款体验与安全差异大。综合=71×0.4+56×0.2+66×0.4=66.0→66",
     src:"北京市残疾人服务平台；河北 2026 框架协议；浙江 2021 目录；深圳 2025 目录；四会市与滑县残联采购公告",
     diff:"入门＝基础钢管款；基础＝铝合金带扶手（官方限价河北 265、浙江 260、深圳 500）；高端＝加宽/护理型（深圳上限 850）",
     bands:[

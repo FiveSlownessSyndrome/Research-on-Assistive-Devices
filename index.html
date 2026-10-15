@@ -1397,6 +1397,16 @@ html.pro-open .bgm{display:none}
   .shape-strip::-webkit-scrollbar{height:6px}
   .shape-strip::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
 
+  /* 模块一（P2）手机端重排：词云框 → 词语释义 → 收录量框 → 四张图
+     把 .p2-left 与 .p2-side 两层拆开（display:contents），四个区块成为 .p2-main 的直接子项后排序，
+     桌面端（>820px）完全不受影响。 */
+  .p2-main{display:flex;flex-direction:column;gap:clamp(10px,1.6vh,14px)}
+  .p2-left,.p2-side{display:contents}
+  .p2-main #cloudBoard{order:1}
+  .p2-main #p2Detail{order:2}
+  .p2-main .p2-side > .panel{order:3}
+  .p2-main .scene-box{order:4}
+
   /* 封面（P1）：序幕标题那层白色柔光衬底在封面态必须撤掉——它就是挡住中间文案的白块 */
   html.pro-cover .pro-title::before{opacity:0 !important;transition:opacity .45s var(--ease)}
   html.pro-cover .pro-title{pointer-events:none}
